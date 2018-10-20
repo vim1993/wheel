@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+.././include/lxOs.h
+pthread.h
+-
+
+.././include/type.h
+
+/home/yz/wheel/test_main.c
+stdio.h
+-
+stdlib.h
+-
+unistd.h
+-
+lxOs.h
+/home/yz/wheel/lxOs.h
+type.h
+/home/yz/wheel/type.h
+

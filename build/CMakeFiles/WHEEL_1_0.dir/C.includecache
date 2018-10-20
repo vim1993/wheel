@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+.././include/lxOs.h
+pthread.h
+-
+
+.././include/type.h
+
+/home/yz/wheel/src/lxIPC.c
+
+/home/yz/wheel/src/lxList.c
+
+/home/yz/wheel/src/lxMemoryPool.c
+
+/home/yz/wheel/src/lxMsgQue.c
+
+/home/yz/wheel/src/lxOs.c
+stdio.h
+-
+stdlib.h
+-
+pthread.h
+-
+semaphore.h
+-
+type.h
+/home/yz/wheel/src/type.h
+lxOs.h
+/home/yz/wheel/src/lxOs.h
+
+/home/yz/wheel/src/lxQue.c
+
+/home/yz/wheel/src/lxSocket.c
+

@@ -1,0 +1,1 @@
+/usr/bin/cc  -fPIC   -shared -Wl,-soname,libWHEEL_1_0.so -o libWHEEL_1_0.so CMakeFiles/WHEEL_1_0.dir/src/lxIPC.c.o CMakeFiles/WHEEL_1_0.dir/src/lxMemoryPool.c.o CMakeFiles/WHEEL_1_0.dir/src/lxQue.c.o CMakeFiles/WHEEL_1_0.dir/src/lxSocket.c.o CMakeFiles/WHEEL_1_0.dir/src/lxMsgQue.c.o CMakeFiles/WHEEL_1_0.dir/src/lxOs.c.o CMakeFiles/WHEEL_1_0.dir/src/lxList.c.o -lpthread 
