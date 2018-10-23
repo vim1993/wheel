@@ -3,17 +3,21 @@
 #include <unistd.h>
 
 #include "lxOs.h"
-
+#include "lxMsgQue.h"
 #include "type.h"
 
-unsigned char buffer[16] = {0};
+msgque_obj * pMsgQue = NULL;
 
 void task_routime(void * param)
 {
-    semaphore_t * smt = (semaphore_t *)param;
-    printf("start wait...\n");
-    smt->semaphore_wait(smt);
-    printf("end wait...\n");
+    void * data = NULL;
+    while(1)
+    {
+        data = pMsgQue->pop_front(pMsgQue);
+        printf("data:%d\n", *((int *)data));
+        pMsgQue->release_buffer(pMsgQue, data);
+    }
+
     return;
 }
 
@@ -21,15 +25,22 @@ int main(int argc, char *argv[])
 {
 
     pthread_t tt;
-    const semaphore_t * smt = NEW(semaphore_t);
-    pthread_create(&tt, NULL, &task_routime, smt);
-    snprintf(buffer, sizeof(buffer), "hello wolrd");
-    printf("start post...\n");
-    smt->semaphore_post(smt);
-    printf("end post...\n");
-    sleep(5);
-    DELETE(semaphore_t, smt);
+    int i = 1;
+    pMsgQue = NEW(msgque_obj);
+    pthread_create(&tt, NULL, &task_routime, NULL);
+
+    pMsgQue->push_back(pMsgQue, &i, sizeof(int));
+    i++;
+    pMsgQue->push_back(pMsgQue, &i, sizeof(int));
+    i++;
+    pMsgQue->push_back(pMsgQue, &i, sizeof(int));
+    i++;
+    pMsgQue->push_back(pMsgQue, &i, sizeof(int));
+    i++;
+    pMsgQue->push_back(pMsgQue, &i, sizeof(int));
+
     pthread_join(tt, NULL);
+    DELETE(msgque_obj, pMsgQue);
 
     return 0;
 }

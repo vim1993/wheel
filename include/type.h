@@ -6,6 +6,8 @@ typedef enum status_e {
     STATUS_E_TRUE
 }status_e;
 
+typedef void * VOIDPTR;
+
 #define CAL_STRUCT_OFFSET(type, member) ( (size_t)&(((type *)0)->member) )
 
 #define CAL_STRUCT_HEAD_PTR(type, ptr, member) ({ \
