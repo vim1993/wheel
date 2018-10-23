@@ -1,1 +1,0 @@
-/usr/bin/cc     CMakeFiles/test.elf.dir/test_main.c.o  -o test.elf -rdynamic libWHEEL_1_0.so -lpthread -Wl,-rpath,/home/yz/wheel/build 
