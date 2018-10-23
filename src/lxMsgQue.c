@@ -63,10 +63,10 @@ VOIDPTR pop_front(struct msgque_obj *this)
     }
 
     pQueCtx->semfifo->semaphore_wait(pQueCtx->semfifo);
-
+    MsgQueNode_s * node= pQueCtx->head;
     data = pQueCtx->head->data;
     pQueCtx->head = pQueCtx->head->next;
-
+    lxOSFree(node);
     return data;
 }
 
@@ -107,8 +107,8 @@ void msgque_obj_delete(msgque_obj * this)
     MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, this, msgObj);
     if(pQueCtx)
     {
-        pNode = pQueCtx->tail;
-        while(!pNode)
+        pNode = pQueCtx->head;
+        while(pNode != NULL)
         {
             pTmpNode = pNode->next;
             lxOSFree(pNode->data);
@@ -117,6 +117,7 @@ void msgque_obj_delete(msgque_obj * this)
             pNode = pTmpNode;
         }
 
+        semaphore_t_delete(pQueCtx->semfifo);
         lxOSFree(pQueCtx);
     }
 
