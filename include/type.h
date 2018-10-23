@@ -1,6 +1,9 @@
 #ifndef __TYPE_H__
 #define __TYPE_H__
 
+#define RET_FAILED (-1)
+#define RET_OK     (0)
+
 typedef enum status_e {
     STATUS_E_FALSE,
     STATUS_E_TRUE

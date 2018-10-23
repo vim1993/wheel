@@ -7,6 +7,7 @@ typedef struct msgque_obj {
 
     status_e  (*push_back)(struct msgque_obj *this, const void * data, size_t datalen);
     VOIDPTR   (*pop_front)(struct msgque_obj *this);
+    VOIDPTR   (*pop_front_timeout)(struct msgque_obj *this, unsigned char timeoutS);
     void      (*release_buffer)(struct msgque_obj *this, void * data);
 }msgque_obj;
 

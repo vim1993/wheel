@@ -131,6 +131,21 @@ static void semaphore_wait(semaphore_t * _mutex)
     return;
 }
 
+static int semaphore_wait_timeout(semaphore_t * _mutex, unsigned char timeoutS)
+{
+    struct timespec timeout = {0};
+
+    semaphore_manager * semManager = GET_STRUCT_HEAD_PTR(semaphore_manager, _mutex, mSem);
+    if(semManager)
+    {
+        clock_gettime(CLOCK_REALTIME, &timeout);
+        timeout.tv_sec += timeoutS;
+        return sem_timedwait(&semManager->mSem_t, &timeout);
+    }
+
+    return RET_FAILED;
+}
+
 semaphore_t * semaphore_t_new(void)
 {
     semaphore_manager * semManager = lxOSMalloc(sizeof(semaphore_manager));
@@ -141,6 +156,8 @@ semaphore_t * semaphore_t_new(void)
 
     semManager->mSem.semaphore_post = semaphore_post;
     semManager->mSem.semaphore_wait = semaphore_wait;
+    semManager->mSem.semaphore_wait_timeout = semaphore_wait_timeout;
+
     if(sem_init(&semManager->mSem_t, 0, 0) != 0)
     {
         lxOSFree(semManager);

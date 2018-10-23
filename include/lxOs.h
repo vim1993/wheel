@@ -15,8 +15,9 @@ extern mutex_lock * pthread_resource_lock_new(void);
 
 typedef struct semaphore_t {
 
-    void (*semaphore_post)(struct semaphore_t * _sem); // mutex_lock
-    void (*semaphore_wait)(struct semaphore_t * _sem); // mutex_unlock
+    void (*semaphore_post)(struct semaphore_t * _sem); // sem_post
+    void (*semaphore_wait)(struct semaphore_t * _sem); // sem_wait
+    int (*semaphore_wait_timeout)(struct semaphore_t * _sem, unsigned char timeoutS); // sem_wait
 
 }semaphore_t;
 

@@ -70,6 +70,28 @@ VOIDPTR pop_front(struct msgque_obj *this)
     return data;
 }
 
+VOIDPTR pop_front_timeout(struct msgque_obj *this, unsigned char timeoutS)
+{
+    void * data = NULL;
+    MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, this, msgObj);
+    if(!pQueCtx)
+    {
+        return NULL;
+    }
+
+    if(pQueCtx->semfifo->semaphore_wait_timeout(pQueCtx->semfifo, timeoutS) != RET_OK)
+    {
+        return NULL;
+    }
+
+    MsgQueNode_s * node= pQueCtx->head;
+    data = pQueCtx->head->data;
+    pQueCtx->head = pQueCtx->head->next;
+    lxOSFree(node);
+    return data;
+}
+
+
 msgque_obj * msgque_obj_new(void)
 {
     MsgQue_Content_s * pQueCtx = (MsgQue_Content_s *)lxOSMalloc(sizeof(MsgQue_Content_s));
@@ -87,6 +109,7 @@ msgque_obj * msgque_obj_new(void)
 
     pQueCtx->msgObj.pop_front = pop_front;
     pQueCtx->msgObj.push_back = push_back;
+    pQueCtx->msgObj.pop_front_timeout = pop_front_timeout;
     pQueCtx->msgObj.release_buffer = release_buffer;
 
     pQueCtx->head = msgque_node_create();
