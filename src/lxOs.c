@@ -19,6 +19,10 @@ void * lxOSMalloc(size_t st)
         return NULL;
     }
 
+    #ifdef LX_DEBUG
+    printf("[%s][%d]!malloc:%p\n", __func__, __LINE__, mOSMalloPtr);
+    #endif
+
     return mOSMalloPtr;
 }
 
@@ -26,6 +30,10 @@ void lxOSFree(void * pFree)
 {
     if(pFree)
     {
+        #ifdef LX_DEBUG
+        printf("[%s][%d]!pFree:%p\n", __func__, __LINE__, pFree);
+        #endif
+
         free(pFree);
         pFree = NULL;
     }
