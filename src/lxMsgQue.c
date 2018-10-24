@@ -26,15 +26,20 @@ static MsgQueNode_s * msgque_node_create(void)
     return node;
 }
 
-void release_buffer(struct msgque_obj *this, const void * data)
+static void release_buffer(struct msgque_obj *this, const void * data)
 {
     lxOSFree(data);
 
     return;
 }
 
-status_e push_back(struct msgque_obj *this, const void * data, size_t datalen)
+static status_e push_back(struct msgque_obj *this, const void * data, size_t datalen)
 {
+    if(!data || datalen <= 0)
+    {
+        return STATUS_E_FALSE;
+    }
+
     MsgQueNode_s * pDataNode = NULL;
     MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, this, msgObj);
     if(!pQueCtx)
@@ -53,7 +58,7 @@ status_e push_back(struct msgque_obj *this, const void * data, size_t datalen)
     return STATUS_E_TRUE;
 }
 
-VOIDPTR pop_front(struct msgque_obj *this)
+static VOIDPTR pop_front(struct msgque_obj *this)
 {
     void * data = NULL;
     MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, this, msgObj);
@@ -70,7 +75,7 @@ VOIDPTR pop_front(struct msgque_obj *this)
     return data;
 }
 
-VOIDPTR pop_front_timeout(struct msgque_obj *this, unsigned char timeoutS)
+static VOIDPTR pop_front_timeout(struct msgque_obj *this, unsigned char timeoutS)
 {
     void * data = NULL;
     MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, this, msgObj);
