@@ -24,4 +24,7 @@ typedef struct semaphore_t {
 extern void semaphore_t_delete(semaphore_t * _mutex);
 extern semaphore_t * semaphore_t_new(void);
 
+void * lxOSMalloc(size_t st);
+void lxOSFree(void * pFree);
+
 #endif

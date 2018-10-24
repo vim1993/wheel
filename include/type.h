@@ -6,8 +6,23 @@
 
 typedef enum status_e {
     STATUS_E_FALSE,
-    STATUS_E_TRUE
+    STATUS_E_TRUE,
+    STATUS_E_MALLOC_FALSE
 }status_e;
+
+typedef enum BOOLTYPE {
+    BOOL_FALSE,
+    BOOL_TRUE
+}BOOLTYPE;
+
+typedef unsigned char u8int;
+typedef char i8int;
+
+typedef unsigned short u16int;
+typedef short i16int;
+
+typedef unsigned int u32int;
+typedef int i32int;
 
 typedef void * VOIDPTR;
 
