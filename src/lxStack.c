@@ -12,6 +12,7 @@ typedef struct lxStackNode {
 typedef struct lxStackContext {
 
     lxStackNode * Head;
+    mutex_lock  * _lock;
     lxstack_obj mSatckObj;
 
 }lxStackContext;
@@ -64,10 +65,10 @@ static BOOLTYPE push_stack(struct lxstack_obj * this, const void * data, size_t 
             LOG_DEBUG_PRINT("plxStackNode init failed\n");
             return BOOL_FALSE;
         }
-
+        plxStackCtx->_lock->pthread_resource_lock(plxStackCtx->_lock);
         plxStackNode->next = plxStackCtx->Head;
         plxStackCtx->Head = plxStackNode;
-
+        plxStackCtx->_lock->pthread_resource_unlock(plxStackCtx->_lock);
         return BOOL_TRUE;
     }
 
@@ -93,12 +94,14 @@ static size_t  pop_stack(struct lxstack_obj * this, void * outdata, size_t len)
             return 0;
         }
 
+        plxStackCtx->_lock->pthread_resource_lock(plxStackCtx->_lock);
         plxStackNode = plxStackCtx->Head->next;
         datalen = len > plxStackCtx->Head->datalen ? plxStackCtx->Head->datalen : len;
         memset(outdata, 0x00, len);
         memcpy(outdata, plxStackCtx->Head->data, datalen);
         lxstack_node_deinit(plxStackCtx->Head);
         plxStackCtx->Head = plxStackNode;
+        plxStackCtx->_lock->pthread_resource_unlock(plxStackCtx->_lock);
     }
 
     return datalen;
@@ -131,6 +134,12 @@ lxstack_obj * lxstack_obj_new(void)
     plxStackCtx->mSatckObj.isEmpty = isEmpty;
     plxStackCtx->mSatckObj.pop_stack = pop_stack;
     plxStackCtx->mSatckObj.push_stack = push_stack;
+    plxStackCtx->_lock = pthread_resource_lock_new();
+    if(!plxStackCtx->_lock)
+    {
+        lxOSFree(plxStackCtx);
+        return NULL;
+    }
 
     return &plxStackCtx->mSatckObj;
 }
@@ -150,22 +159,47 @@ void lxstack_obj_delete(lxstack_obj * this)
             plxStackCtx->Head = plxStackNode;
         }
 
+        pthread_resource_lock_delete(plxStackCtx->_lock);
         lxOSFree(plxStackCtx);
     }
 
     return;
 }
 
-int lxstack_unit_test(void)
+#ifdef UNIT_TEST
+int lxstack_unit_test_proc(void * param)
 {
     int index = 0;
 
+    char outbuff[3][16] = {0};
+
+    lxstack_obj * lxStackOBJ = (lxstack_obj *)param;
+    if(!lxStackOBJ)
+    {
+        LOG_ERROR_PRINT("new lxStackOBJ failed\n");
+        return -1;
+    }
+    //LOG_DEBUG_PRINT("is empty:%d\n", lxStackOBJ->isEmpty(lxStackOBJ));
+
+    for(index = 0; index < 3; index++)
+    {
+        lxStackOBJ->pop_stack(lxStackOBJ, outbuff[index], 16);
+        LOG_DEBUG_PRINT("pop [%d][%s]\n", index, outbuff[index]);
+    }
+
+    return 0;
+}
+
+
+int lxstack_unit_test(void)
+{
+    int index = 0;
+    pthread_t tt;
     char buffer[][16] = {
         "hello world",
         "nihao",
         "rtrr"
     };
-    char outbuff[3][16] = {0};
 
     lxstack_obj * lxStackOBJ = lxstack_obj_new();
     if(!lxStackOBJ)
@@ -173,20 +207,19 @@ int lxstack_unit_test(void)
         LOG_ERROR_PRINT("new lxStackOBJ failed\n");
         return -1;
     }
-    LOG_DEBUG_PRINT("is empty:%d\n", lxStackOBJ->isEmpty(lxStackOBJ));
+
+    pthread_create(&tt, NULL, lxstack_unit_test_proc, lxStackOBJ);
+    //LOG_DEBUG_PRINT("is empty:%d\n", lxStackOBJ->isEmpty(lxStackOBJ));
     for(index = 0; index < 3; index++)
     {
         lxStackOBJ->push_stack(lxStackOBJ, buffer[index], strlen(buffer[index]));
+        LOG_DEBUG_PRINT("push:%d,%s\n", index, buffer[index]);
     }
 
-    for(index = 0; index < 3; index++)
-    {
-        lxStackOBJ->pop_stack(lxStackOBJ, outbuff[index], 16);
-        LOG_DEBUG_PRINT("[%d][%s]\n", index, outbuff[index]);
-    }
+    pthread_join(tt, NULL);
 
     lxstack_obj_delete(lxStackOBJ);
 
     return 0;
 }
-
+#endif
