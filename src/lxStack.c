@@ -122,6 +122,17 @@ static BOOLTYPE isEmpty(struct lxstack_obj * this)
     return boolRet;
 }
 
+//this interfaces are for the sequential stack, and the chain stack returns false
+static BOOLTYPE isFull(struct lxstack_obj * this)
+{
+    return BOOL_FALSE;
+}
+
+//this interfaces are for the sequential stack, and the chain stack returns true
+static BOOLTYPE init(struct lxstack_obj * this, u32int ElmentNum)
+{
+    return BOOL_TRUE;
+}
 
 lxstack_obj * lxstack_obj_new(void)
 {
@@ -134,6 +145,8 @@ lxstack_obj * lxstack_obj_new(void)
     plxStackCtx->mSatckObj.isEmpty = isEmpty;
     plxStackCtx->mSatckObj.pop_stack = pop_stack;
     plxStackCtx->mSatckObj.push_stack = push_stack;
+    plxStackCtx->mSatckObj.init = init;
+    plxStackCtx->mSatckObj.isFull = isFull;
     plxStackCtx->_lock = pthread_resource_lock_new();
     if(!plxStackCtx->_lock)
     {
