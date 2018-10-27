@@ -1,73 +1,105 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "lxOs.h"
 #include "lxMsgQue.h"
+#include "lxQue.h"
+#include "lxStack.h"
 #include "type.h"
+#include "lxlog.h"
 
-msgque_obj * pMsgQue = NULL;
-unsigned int exit_pthread = 0;
+typedef struct tree_node {
+    struct tree_node * lChild;
+    struct tree_node * rChild;
+    u32int value;
+}tree_node;
 
-void showtime(void)
+static lxque_obj * lxQueOBJ = NULL;
+
+void init(LOG_LEVEL_E level)
 {
-    time_t timep;
-    time(&timep);
-    printf("%s\n",asctime(gmtime(&timep)));
+    Log_Set_PrintLevel(level);
 }
 
-
-void task_routime(void * param)
+void release_tree(tree_node * initNode)
 {
-    void * data = NULL;
-    while(1)
+
+}
+
+void create_tree(tree_node * initNode)
+{
+    if(!initNode)
     {
-        #if 0
-        data = pMsgQue->pop_front(pMsgQue);
-        #else
-        data = pMsgQue->pop_front_timeout(pMsgQue, 2);
-        if(!data)
-        {
-            showtime();
-            continue;
-        }
-        #endif
-        printf("data:%d\n", *((int *)data));
-        pMsgQue->release_buffer(pMsgQue, data);
-        if(exit_pthread)
-        {
-            break;
-        }
+        return;
     }
 
-    printf("[%s][%d]! exit\n", __func__, __LINE__);
+    initNode->value = 1;
+    initNode->lChild = lxOSMalloc(sizeof(tree_node));
+    initNode->rChild = lxOSMalloc(sizeof(tree_node));
+    initNode->lChild->value = 2;
+    initNode->rChild->value = 3;
+
+    initNode->lChild->lChild = lxOSMalloc(sizeof(tree_node));
+    initNode->lChild->lChild->value = 4;
+    initNode->lChild->lChild->lChild = NULL;
+    initNode->lChild->lChild->rChild = NULL;
+
+    initNode->lChild->rChild = lxOSMalloc(sizeof(tree_node));
+    initNode->lChild->rChild->value = 5;
+    initNode->lChild->rChild->lChild = NULL;
+    initNode->lChild->rChild->rChild = NULL;
+
+    initNode->rChild->lChild = lxOSMalloc(sizeof(tree_node));
+    initNode->rChild->lChild->value = 6;
+    initNode->rChild->lChild->lChild = NULL;
+    initNode->rChild->lChild->rChild = NULL;
+
+    initNode->rChild->rChild = lxOSMalloc(sizeof(tree_node));
+    initNode->rChild->rChild->value = 7;
+    initNode->rChild->rChild->lChild = NULL;
+    initNode->rChild->rChild->rChild = NULL;
+
     return;
+}
+
+void showValue(int data)
+{
+    LOG_ERROR_PRINT("[%d]\n", data);
+
+    return;
+}
+
+void Level_traversal(tree_node * node)
+{
+    tree_node tmpNode = {0};
+    size_t len = sizeof(tree_node);
+    if(node == NULL || lxQueOBJ == NULL)
+    {
+        return;
+    }
+
+    lxQueOBJ->push_back(lxQueOBJ, node, len);
+
+    while(!lxQueOBJ->isEmpty(lxQueOBJ))
+    {
+        lxQueOBJ->pop_front(lxQueOBJ, &tmpNode, len);
+        showValue(tmpNode.value);
+        lxQueOBJ->push_back(lxQueOBJ, tmpNode.lChild, len);
+        lxQueOBJ->push_back(lxQueOBJ, tmpNode.rChild, len);
+    }
 }
 
 int main(int argc, char *argv[])
 {
 
-    pthread_t tt;
-    int i = 1;
-    pMsgQue = NEW(msgque_obj);
-    pthread_create(&tt, NULL, &task_routime, NULL);
+    tree_node firstNode = {0};
+    lxQueOBJ = NEW(lxque_obj);
+    init(LOG_LEVEL_ERROR);
+    create_tree(&firstNode);
+    Level_traversal(&firstNode);
 
-    #if 0
-    pMsgQue->push_back(pMsgQue, &i, sizeof(int));
-    i++;
-    pMsgQue->push_back(pMsgQue, &i, sizeof(int));
-    i++;
-    pMsgQue->push_back(pMsgQue, &i, sizeof(int));
-    i++;
-    pMsgQue->push_back(pMsgQue, &i, sizeof(int));
-    i++;
-    pMsgQue->push_back(pMsgQue, &i, sizeof(int));
-
-    exit_pthread = 1;
-    #endif
-
-    pthread_join(tt, NULL);
-    DELETE(msgque_obj, pMsgQue);
-
+    DELETE(lxque_obj, lxQueOBJ);
     return 0;
 }
