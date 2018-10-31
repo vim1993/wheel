@@ -25,4 +25,7 @@ void Log_Print(LOG_LEVEL_E level, const char * format, ...);
 #define LOG_INFO_PRINT(format, printlist...) \
         Log_Print(LOG_LEVEL_INFO, "[LOG_LEVEL_INFO]"format, ##printlist);
 
+#define LOG_DEBUG_PRINT_EX() \
+        Log_Print(LOG_LEVEL_ERROR, "[%s][%d]\n", __func__, __LINE__)
+
 #endif

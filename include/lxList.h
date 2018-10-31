@@ -17,11 +17,23 @@ typedef struct lxlist_node {
 
 typedef struct lxlist_Obj {
 
+    #ifdef LX_DEBUG
+    void (*lxlist_show)(struct lxlist_node * baseNode);
+    #endif
+
     void (*lxlist_init)(struct lxlist_node * InitNode);
     void (*lxlist_add)(struct lxlist_node * newNode, struct lxlist_node * PreNode, struct lxlist_node * NextNode);
     void (*lxlist_rm)(struct lxlist_node * rmNode, struct lxlist_node * PreNode, struct lxlist_node * NextNode);
 
 }lxlist_Obj;
+
+#ifdef LX_DEBUG
+#define LXLIST_SHOW(THIS, NODEPTR) do { \
+        assert(NODEPTR != NULL); \
+        assert(THIS != NULL); \
+        (THIS)->lxlist_show(NODEPTR); \
+    }while(0)
+#endif
 
 #define LXLIST_INIT(THIS, NODEPtr) do{ \
         assert(NODEPtr != NULL); \

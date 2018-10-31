@@ -2,6 +2,26 @@
 #include "lxOs.h"
 #include "lxList.h"
 
+#ifdef LX_DEBUG
+static void lxlist_show(struct lxlist_node * baseNode)
+{
+    struct lxlist_node * node = baseNode;
+
+    LOG_DEBUG_PRINT_EX();
+    while(node)
+    {
+        LOG_DEBUG_PRINT("%p\n", node);
+        node = node->Next;
+        if(node == baseNode)
+        {
+            break;
+        }
+    }
+
+    return;
+}
+#endif
+
 static void lxlist_init(struct lxlist_node * InitNode)
 {
     InitNode->Next = InitNode->Prev = InitNode;
@@ -39,6 +59,10 @@ lxlist_Obj * lxlist_Obj_new(void)
     mLxlistOBJ->lxlist_add = lxlist_add;
     mLxlistOBJ->lxlist_init = lxlist_init;
     mLxlistOBJ->lxlist_rm  = lxlist_rm;
+
+    #ifdef LX_DEBUG
+    mLxlistOBJ->lxlist_show = lxlist_show;
+    #endif
 
     return mLxlistOBJ;
 }
