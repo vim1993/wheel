@@ -16,24 +16,25 @@ typedef enum {
     MEMERYBLOCK_STATUS_FREE
 }MEMERYBLOCK_STATUS_E;
 
+typedef struct lxMemeryBlock_t lxMemeryBlock_t;
+
 typedef struct lxMemeryBlock_Head_t {
     struct lxlist_node lxnode;
     size_t blockSize;
     size_t malloc_size;
-    void * uplink;
     MEMERYBLOCK_STATUS_E  tag;
 }lxMemeryBlock_Head_t;
 
 typedef struct lxMemeryBlock_Tail_t {
-    void * uplink;
+    lxMemeryBlock_t * uplink;
     MEMERYBLOCK_STATUS_E tag;
 }lxMemeryBlock_Tail_t;
 
-typedef struct lxMemeryBlock_t {
+struct lxMemeryBlock_t {
     lxMemeryBlock_Head_t mBlockHead;
     void * mDataSpace;
-    lxMemeryBlock_Tail_t mBlockTail;
-}lxMemeryBlock_t;
+    lxMemeryBlock_Tail_t * mBlockTail;
+};
 
 typedef struct lxMemeryContext{
 
@@ -56,6 +57,7 @@ static void resources_recovery(const lxlist_Obj * mLXLOBJ, struct lxlist_node * 
         return;
     }
 
+    #if 0
     lxMemeryBlock_t * Mb = NULL, *PrevMb = NULL, *NextMb = NULL;
     lxMemeryBlock_Head_t * lxMHead = NULL;
     lxMemeryBlock_Tail_t * lxMTail = NULL;
@@ -78,7 +80,7 @@ static void resources_recovery(const lxlist_Obj * mLXLOBJ, struct lxlist_node * 
     Mb = lxMHead->uplink;
     lxMTail = (char *)Mb - sizeof(lxMemeryBlock_Tail_t);
     PrevMb = lxMTail->uplink;
-
+    #endif
 }
 
 static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
@@ -98,47 +100,48 @@ static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
     while(lxnode)
     {
         lxMHead = GET_STRUCT_HEAD_PTR(lxMemeryBlock_Head_t, lxnode, lxnode);
-        if(!lxMHead)
+        Mb = GET_STRUCT_HEAD_PTR(lxMemeryBlock_t, lxMHead, mBlockHead);
+        if(!Mb)
         {
             return NULL;
         }
+
         if(lxMHead->blockSize > size)
         {
             if(lxMHead->blockSize - size > getPageSize())
             {
-                Mb = lxMHead->uplink;
-                NewFreeMB = (char *)Mb + sizeof(lxMemeryBlock_t) + size;
-                NewFreeMB->mBlockHead.blockSize = lxMHead->blockSize - size - sizeof(lxMemeryBlock_Head_t) - sizeof(lxMemeryBlock_Tail_t);
+                NewFreeMB = (char *)Mb + sizeof(lxMemeryBlock_t) + size + sizeof(lxMemeryBlock_Tail_t);
+
+                NewFreeMB->mBlockHead.blockSize = (char *)Mb->mBlockTail - (char *)NewFreeMB - sizeof(lxMemeryBlock_Head_t);
                 NewFreeMB->mBlockHead.tag = MEMERYBLOCK_STATUS_FREE;
-                NewFreeMB->mBlockHead.uplink = NewFreeMB;
-                NewFreeMB->mBlockTail.tag = MEMERYBLOCK_STATUS_FREE;
-                NewFreeMB->mBlockTail.uplink = NewFreeMB;
-                NewFreeMB->mDataSpace = (char *)NewFreeMB + sizeof(lxMemeryBlock_Head_t);
+
+                NewFreeMB->mBlockTail = Mb->mBlockTail;
+                NewFreeMB->mBlockTail->tag = MEMERYBLOCK_STATUS_FREE;
+                NewFreeMB->mBlockTail->uplink = NewFreeMB;
+                NewFreeMB->mDataSpace = (char *)NewFreeMB + sizeof(lxMemeryBlock_t);
                 LXLIST_ADD_HEAD(lxMCtx->mLXLOBJ, &NewFreeMB->mBlockHead.lxnode, lxnode);
                 lxMCtx->FreeSpace = NewFreeMB;
-                LOG_DEBUG_PRINT("%p,%p\n", Mb, NewFreeMB);
             }
-            else
-            {
-                Mb = lxMHead->uplink;
-            }
-            LXLIST_DEL_NODE(lxMCtx->mLXLOBJ, lxnode, lxMCtx->basePtr);
+            LXLIST_DEL_NODE(lxMCtx->mLXLOBJ, lxnode);
             break;
         }
 
         lxnode = lxnode->Next;
-        LOG_DEBUG_PRINT_EX();
         if(lxfirstnode == lxnode)
         {
-            resources_recovery(lxMCtx->mLXLOBJ, lxnode);
+            resources_recovery(lxMCtx->mLXLOBJ, lxnode, lxMCtx->basePtr);
         }
     }
+
     Mb->mBlockHead.malloc_size = size;
     Mb->mBlockHead.tag = MEMERYBLOCK_STATUS_BUSY;
-    Mb->mBlockHead.uplink = Mb;
-    Mb->mBlockTail.tag = MEMERYBLOCK_STATUS_BUSY;
-    Mb->mBlockTail.uplink = Mb;
-    Mb->mDataSpace = (char *)Mb + sizeof(lxMemeryBlock_Head_t);
+
+    Mb->mBlockTail = (char *)Mb + sizeof(lxMemeryBlock_t) + size;
+    Mb->mBlockTail->tag = MEMERYBLOCK_STATUS_BUSY;
+    Mb->mBlockTail->uplink = Mb;
+    Mb->mDataSpace = (char *)Mb + sizeof(lxMemeryBlock_t);
+
+    LOG_ERROR_PRINT("[Mb:%p][mBlockTail:%p][mDataSpace:%p]\n", Mb, Mb->mBlockTail, Mb->mDataSpace);
 
     return Mb->mDataSpace;
 }
@@ -150,23 +153,20 @@ static VOIDPTR lxrealloc(struct lx_memery_Obj * this, VOIDPTR basePtr, size_t si
 
 static void lxfree(struct lx_memery_Obj * this, VOIDPTR *basePtr)
 {
+
     lxMemeryContext * lxMCtx = GET_STRUCT_HEAD_PTR(lxMemeryContext, this, mLXMOBJ);
     if(lxMCtx)
     {
-        lxMemeryBlock_t * Mb = GET_STRUCT_HEAD_PTR(lxMemeryBlock_t, basePtr, mDataSpace);
-
+        lxMemeryBlock_t * Mb = (char *)basePtr - sizeof(lxMemeryBlock_t);
+        LOG_ERROR_PRINT("lxMemeryBlock_t:[%p]\n", Mb);
         if(Mb)
         {
             Mb->mBlockHead.tag = MEMERYBLOCK_STATUS_FREE;
-            Mb->mBlockTail.tag = MEMERYBLOCK_STATUS_FREE;
+            Mb->mBlockTail->tag = MEMERYBLOCK_STATUS_FREE;
             memset(Mb->mDataSpace, 0x00, Mb->mBlockHead.malloc_size);
             Mb->mBlockHead.malloc_size = 0;
-            LOG_DEBUG_PRINT("free:%p", &Mb->mBlockHead.lxnode);
-            LXLIST_ADD_TAIL(lxMCtx->mLXLOBJ, &Mb->mBlockHead.lxnode, &lxMCtx->FreeSpace->mBlockHead.lxnode); //add to free list
 
-            #ifdef LX_DEBUG
-            LXLIST_SHOW(lxMCtx->mLXLOBJ, &Mb->mBlockHead.lxnode);
-            #endif
+            LXLIST_ADD_TAIL(lxMCtx->mLXLOBJ, &Mb->mBlockHead.lxnode, &lxMCtx->FreeSpace->mBlockHead.lxnode); //add to free list
         }
     }
 
@@ -201,13 +201,14 @@ lx_memery_Obj * lx_memery_Obj_new()
     lxMCtx->mLXMOBJ.lxrealloc = lxrealloc;
 
     lxMCtx->FreeSpace = lxMCtx->basePtr;
-    lxMCtx->FreeSpace->mBlockHead.blockSize = MEMERY_POOL_SIZE - sizeof(lxMemeryBlock_Head_t) - sizeof(lxMemeryBlock_Tail_t);
+    lxMCtx->FreeSpace->mBlockHead.blockSize = MEMERY_POOL_SIZE - sizeof(lxMemeryBlock_t) - sizeof(lxMemeryBlock_Tail_t);
     lxMCtx->FreeSpace->mBlockHead.tag = MEMERYBLOCK_STATUS_FREE;
     LXLIST_INIT(lxMCtx->mLXLOBJ, &lxMCtx->FreeSpace->mBlockHead.lxnode);
-    lxMCtx->FreeSpace->mBlockHead.uplink = lxMCtx->FreeSpace;
-    lxMCtx->FreeSpace->mBlockTail.tag = MEMERYBLOCK_STATUS_FREE;
-    lxMCtx->FreeSpace->mBlockTail.uplink = lxMCtx->FreeSpace;
-    lxMCtx->FreeSpace->mDataSpace = (char *)lxMCtx->FreeSpace - sizeof(lxMemeryBlock_Head_t);
+
+    lxMCtx->FreeSpace->mBlockTail = (char *)lxMCtx->FreeSpace + MEMERY_POOL_SIZE - sizeof(lxMemeryBlock_Tail_t);
+    lxMCtx->FreeSpace->mBlockTail->tag = MEMERYBLOCK_STATUS_FREE;
+    lxMCtx->FreeSpace->mBlockTail->uplink = lxMCtx->FreeSpace;
+    lxMCtx->FreeSpace->mDataSpace = (char *)lxMCtx->FreeSpace + sizeof(lxMemeryBlock_t);
 
     return &lxMCtx->mLXMOBJ;
 }
