@@ -47,7 +47,11 @@ typedef struct lxMemeryContext{
 
 static size_t getPageSize(void)
 {
+    #ifdef UNIT_TEST
     return 128;
+    #else
+    return 512;
+    #endif
 }
 
 static void resources_recovery(const lxlist_Obj * mLXLOBJ, struct lxlist_node * lxnode, const void * basePtr, lxMemeryBlock_t * lxMb, size_t size)
@@ -263,3 +267,32 @@ void lx_memery_Obj_delete(lx_memery_Obj * this)
 
     return;
 }
+
+#ifdef UNIT_TEST
+u32int lxmemory_unit_test(void)
+{
+    lx_memery_Obj * this = NEW(lx_memery_Obj);
+    if(!this)
+    {
+        LOG_ERROR_PRINT("create lx_memery_Obj failed\n");
+        return -1;
+    }
+
+    int * data = MALLOC(this, 100);
+    int * data2 = MALLOC(this, 200);
+    int * data3 = MALLOC(this, 400);
+    FREE(this, data);
+    FREE(this, data2);
+    char * data4 = MALLOC(this, 150);
+    strcpy(data4, "hello world");
+    LOG_DEBUG_PRINT("[%s][%p]\n",data4, data4);
+    data4 = REALLOC(this, data4, 250);
+    LOG_DEBUG_PRINT("[%s][%p]\n",data4, data4);
+
+
+    FREE(this, data3);
+    FREE(this, data4);
+    DELETE(lx_memery_Obj, this);
+}
+
+#endif

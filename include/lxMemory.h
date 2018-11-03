@@ -6,8 +6,12 @@
 #include <assert.h>
 #include "type.h"
 
-//#define MEMERY_POOL_SIZE (1024 * 1024 * 10)
+#ifdef UNIT_TEST
 #define MEMERY_POOL_SIZE (1024)
+#else
+#define MEMERY_POOL_SIZE (1024 * 1024 * 10)
+#endif
+
 typedef struct lx_memery_Obj {
 
     VOIDPTR (*lxmalloc)(struct lx_memery_Obj * this, size_t size);
@@ -31,5 +35,9 @@ typedef struct lx_memery_Obj {
 
 lx_memery_Obj * lx_memery_Obj_new();
 void lx_memery_Obj_delete(lx_memery_Obj * this);
+
+#ifdef UNIT_TEST
+u32int lxmemory_unit_test(void);
+#endif
 
 #endif
