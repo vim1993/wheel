@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "type.h"
 #include "lxOs.h"
 #include "lxMsgQue.h"
