@@ -3,6 +3,8 @@
  *email:vim1993@163.com
  *version:V1.0
  */
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "lxMemory.h"
@@ -40,6 +42,7 @@ typedef struct lxMemeryContext{
 
     void * basePtr;
     lxMemeryBlock_t * FreeSpace;
+    mutex_lock * mlock;
     lxlist_Obj * mLXLOBJ;
     lx_memery_Obj mLXMOBJ;
 
@@ -106,6 +109,7 @@ static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
     lxMemeryBlock_t * Mb = NULL, * NewFreeMB = NULL;
     struct lxlist_node * lxnode = NULL, * lxfirstnode = NULL;
     lxMemeryBlock_Head_t * lxMHead = NULL;
+    PMUTEX_LOCK(lxMCtx->mlock);
     lxnode = &lxMCtx->FreeSpace->mBlockHead.lxnode;
     lxfirstnode = lxnode;
     while(lxnode)
@@ -114,6 +118,7 @@ static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
         Mb = GET_STRUCT_HEAD_PTR(lxMemeryBlock_t, lxMHead, mBlockHead);
         if(!Mb)
         {
+            PMUTEX_UNLOCK(lxMCtx->mlock);
             return NULL;
         }
 
@@ -157,7 +162,7 @@ static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
     Mb->mDataSpace = (char *)Mb + sizeof(lxMemeryBlock_t);
 
     LOG_INFO_PRINT("bs:[%d],MS:[%d], addr:[%p]\n", Mb->mBlockHead.blockSize, Mb->mBlockHead.malloc_size, Mb->mDataSpace);
-
+    PMUTEX_UNLOCK(lxMCtx->mlock);
     return Mb->mDataSpace;
 }
 
@@ -171,6 +176,7 @@ static void lxfree(struct lx_memery_Obj * this, VOIDPTR basePtr)
 
         if(Mb)
         {
+            PMUTEX_LOCK(lxMCtx->mlock);
             Mb->mBlockHead.tag = MEMERYBLOCK_STATUS_FREE;
             Mb->mBlockTail->tag = MEMERYBLOCK_STATUS_FREE;
             memset(Mb->mDataSpace, 0x00, Mb->mBlockHead.malloc_size);
@@ -185,6 +191,7 @@ static void lxfree(struct lx_memery_Obj * this, VOIDPTR basePtr)
             {
                 LXLIST_ADD_TAIL(lxMCtx->mLXLOBJ, &Mb->mBlockHead.lxnode, &lxMCtx->FreeSpace->mBlockHead.lxnode); //add to free list
             }
+            PMUTEX_UNLOCK(lxMCtx->mlock);
         }
     }
 
@@ -239,6 +246,16 @@ lx_memery_Obj * lx_memery_Obj_new()
         lxOSFree(lxMCtx);
         return NULL;
     }
+
+    lxMCtx->mlock = pthread_resource_lock_new();
+    if(!lxMCtx->mlock)
+    {
+        lxOSFree(lxMCtx->basePtr);
+        lxOSFree(lxMCtx);
+        lxlist_Obj_delete(lxMCtx->mLXLOBJ);
+        return NULL;
+    }
+
     lxMCtx->mLXMOBJ.lxfree = lxfree;
     lxMCtx->mLXMOBJ.lxmalloc = lxmalloc;
     lxMCtx->mLXMOBJ.lxrealloc = lxrealloc;
