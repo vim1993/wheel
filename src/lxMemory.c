@@ -86,6 +86,7 @@ static void resources_recovery(const lxlist_Obj * mLXLOBJ, struct lxlist_node * 
             LOG_ERROR_PRINT("blockSize[%d]\n", PrevMb->mBlockHead.blockSize);
             blockSize = PrevMb->mBlockHead.blockSize;
         }
+        Mb = PrevMb;
     }
 
     return;
@@ -114,6 +115,8 @@ static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
             return NULL;
         }
 
+        LOG_ERROR_PRINT("[%d]\n", lxMHead->blockSize);
+
         if(lxMHead->blockSize >= size)
         {
             if(lxMHead->blockSize - size > getPageSize())
@@ -130,7 +133,8 @@ static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
 
                 LXLIST_ADD_HEAD(lxMCtx->mLXLOBJ, &NewFreeMB->mBlockHead.lxnode, lxnode);
                 lxMCtx->FreeSpace = NewFreeMB;
-                LOG_ERROR_PRINT("[%p][%p][%p]\n", lxMCtx->FreeSpace, lxMCtx->FreeSpace->mBlockHead.lxnode.Next, lxMCtx->FreeSpace->mBlockHead.lxnode.Prev);
+                Mb->mBlockHead.blockSize = size;
+                //LOG_ERROR_PRINT("[%p][%p][%p]\n", lxMCtx->FreeSpace, lxMCtx->FreeSpace->mBlockHead.lxnode.Next, lxMCtx->FreeSpace->mBlockHead.lxnode.Prev);
             }
             LXLIST_DEL_NODE(lxMCtx->mLXLOBJ, lxnode);
             break;
@@ -150,7 +154,7 @@ static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
     Mb->mBlockTail->tag = MEMERYBLOCK_STATUS_BUSY;
     Mb->mBlockTail->uplink = Mb;
     Mb->mDataSpace = (char *)Mb + sizeof(lxMemeryBlock_t);
-
+    LOG_ERROR_PRINT("bs:[%d]\n", Mb->mBlockHead.blockSize);
     return Mb->mDataSpace;
 }
 
@@ -173,7 +177,7 @@ static void lxfree(struct lx_memery_Obj * this, VOIDPTR *basePtr)
             Mb->mBlockTail->tag = MEMERYBLOCK_STATUS_FREE;
             memset(Mb->mDataSpace, 0x00, Mb->mBlockHead.malloc_size);
             Mb->mBlockHead.malloc_size = 0;
-            //LOG_ERROR_PRINT("[%p][%p][%p]\n", lxMCtx->FreeSpace, lxMCtx->FreeSpace->mBlockHead.lxnode.Next, lxMCtx->FreeSpace->mBlockHead.lxnode.Prev);
+            LOG_ERROR_PRINT("[%d]\n", Mb->mBlockHead.blockSize);
             if(lxMCtx->FreeSpace->mBlockHead.lxnode.Next == NULL && lxMCtx->FreeSpace->mBlockHead.lxnode.Prev == NULL)
             {
                 lxMCtx->FreeSpace = Mb;
