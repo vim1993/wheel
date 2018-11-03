@@ -12,7 +12,7 @@ typedef struct lx_memery_Obj {
 
     VOIDPTR (*lxmalloc)(struct lx_memery_Obj * this, size_t size);
     VOIDPTR (*lxrealloc)(struct lx_memery_Obj * this, VOIDPTR basePtr, size_t size);
-    void (*lxfree)(struct lx_memery_Obj * this, VOIDPTR *basePtr);
+    void (*lxfree)(struct lx_memery_Obj * this, VOIDPTR basePtr);
 
 }lx_memery_Obj;
 
@@ -26,7 +26,7 @@ typedef struct lx_memery_Obj {
 }while(0)
 
 #define REALLOC(THIS, PTR, SIZE) ( \
-    THIS == NULL ? NULL : (THIS)->lxrealloc(THIS, PTR, SIZE); \
+    THIS == NULL ? NULL : (THIS)->lxrealloc(THIS, PTR, SIZE) \
     )
 
 lx_memery_Obj * lx_memery_Obj_new();
