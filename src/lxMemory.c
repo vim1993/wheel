@@ -77,16 +77,19 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
         if(Mb != basePtr)
         {
             lxMTail = (char *)Mb - sizeof(lxMemeryBlock_Tail_t);
+            LOG_ERROR_PRINT("lxMTail->tag [%d]\n", lxMTail->tag);
         }
 
         lxMHead = (char *)Mb + sizeof(lxMemeryBlock_t) + Mb->mBlockHead.blockSize + sizeof(lxMemeryBlock_Tail_t);
         LOG_ERROR_PRINT("lxMHead[%p][%p][%p]\n", ((char *)basePtr + MEMERY_POOL_SIZE), lxMHead, ((lxMemeryBlock_t *)lxMHead)->mBlockTail);
-        if((char *)((lxMemeryBlock_t *)lxMHead)->mBlockTail + sizeof(lxMemeryBlock_Tail_t) > ((char *)basePtr + MEMERY_POOL_SIZE))
+        if((char *)lxMHead == ((char *)basePtr + MEMERY_POOL_SIZE))
         {
             lxMHead = NULL;
         }
-
-        LOG_ERROR_PRINT("[%d][%d]\n", lxMHead->tag, lxMTail->tag);
+        else
+        {
+            LOG_ERROR_PRINT("lxMHead->tag [%d]\n", lxMHead->tag);
+        }
 
         if(lxMTail != NULL && lxMHead != NULL && lxMTail->tag == MEMERYBLOCK_STATUS_FREE && lxMHead->tag == MEMERYBLOCK_STATUS_FREE)
         {
