@@ -80,13 +80,13 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
         }
 
         lxMHead = (char *)Mb + sizeof(lxMemeryBlock_t) + Mb->mBlockHead.blockSize + sizeof(lxMemeryBlock_Tail_t);
-        LOG_INFO_PRINT("lxMHead[%p][%p][%p]\n", ((char *)basePtr + MEMERY_POOL_SIZE), lxMHead, ((lxMemeryBlock_t *)lxMHead)->mBlockTail);
-        if((char *)lxMHead == ((char *)basePtr + MEMERY_POOL_SIZE))
+        LOG_ERROR_PRINT("lxMHead[%p][%p][%p]\n", ((char *)basePtr + MEMERY_POOL_SIZE), lxMHead, ((lxMemeryBlock_t *)lxMHead)->mBlockTail);
+        if((char *)((lxMemeryBlock_t *)lxMHead)->mBlockTail + sizeof(lxMemeryBlock_Tail_t) > ((char *)basePtr + MEMERY_POOL_SIZE))
         {
             lxMHead = NULL;
         }
 
-        LOG_INFO_PRINT("[%d][%d]\n", lxMHead->tag, lxMTail->tag);
+        LOG_ERROR_PRINT("[%d][%d]\n", lxMHead->tag, lxMTail->tag);
 
         if(lxMTail != NULL && lxMHead != NULL && lxMTail->tag == MEMERYBLOCK_STATUS_FREE && lxMHead->tag == MEMERYBLOCK_STATUS_FREE)
         {
@@ -102,7 +102,7 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
             PrevMb->mBlockTail->tag = MEMERYBLOCK_STATUS_FREE;
             PrevMb->mBlockTail->uplink = PrevMb;
             blockSize += PrevMb->mBlockHead.blockSize;
-            LOG_INFO_PRINT("Resource blockSize[%d]\n", PrevMb->mBlockHead.blockSize);
+            LOG_ERROR_PRINT("Resource blockSize[%d]\n", PrevMb->mBlockHead.blockSize);
         }
         else if(lxMHead != NULL && lxMHead->tag == MEMERYBLOCK_STATUS_FREE)
         {
@@ -115,7 +115,7 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
             PrevMb->mBlockHead.tag = MEMERYBLOCK_STATUS_FREE;
             PrevMb->mBlockHead.blockSize = (char *)PrevMb->mBlockTail - (char *)PrevMb->mDataSpace;
             blockSize += PrevMb->mBlockHead.blockSize;
-            LOG_INFO_PRINT("Resource blockSize[%d]\n", blockSize);
+            LOG_ERROR_PRINT("Resource blockSize[%d]\n", blockSize);
 
         }
         else if(lxMTail != NULL && lxMTail->tag == MEMERYBLOCK_STATUS_FREE)
@@ -129,7 +129,7 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
             PrevMb->mBlockHead.blockSize = (char *)PrevMb->mBlockTail - (char *)PrevMb->mDataSpace;
 
             blockSize += PrevMb->mBlockHead.blockSize;
-            LOG_INFO_PRINT("Resource blockSize[%d]\n", blockSize);
+            LOG_ERROR_PRINT("Resource blockSize[%d]\n", blockSize);
         }
         else
         {
@@ -139,7 +139,7 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
         Mb = PrevMb;
     }
 
-    LOG_INFO_PRINT("[%p][%p][%p]\n", Mb, Mb->mBlockHead.lxnode.Next, Mb->mBlockHead.lxnode.Prev);
+    LOG_ERROR_PRINT("[%p][%p][%p]\n", Mb, Mb->mBlockHead.lxnode.Next, Mb->mBlockHead.lxnode.Prev);
     memset(Mb->mDataSpace, 0x00, Mb->mBlockHead.blockSize);
 
     return Mb;
@@ -170,7 +170,7 @@ static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
             return NULL;
         }
 
-        LOG_INFO_PRINT("blockSize:[%d], Head:[%p]\n", lxMHead->blockSize, lxMHead);
+        LOG_ERROR_PRINT("blockSize:[%d], Head:[%p]\n", lxMHead->blockSize, lxMHead);
 
         if(lxMHead->blockSize >= size)
         {
@@ -190,7 +190,7 @@ static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
                 LXLIST_ADD_HEAD(lxMCtx->mLXLOBJ, &NewFreeMB->mBlockHead.lxnode, lxnode);
                 lxMCtx->FreeSpace = NewFreeMB;
                 Mb->mBlockHead.blockSize = size;
-                LOG_INFO_PRINT("[%p][%p]\n", NewFreeMB->mBlockTail, NewFreeMB);
+                LOG_ERROR_PRINT("[%p][%p]\n", NewFreeMB->mBlockTail, NewFreeMB);
             }
             LXLIST_DEL_NODE(lxMCtx->mLXLOBJ, lxnode);
             break;
@@ -211,7 +211,7 @@ static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
     Mb->mBlockTail->uplink = Mb;
     Mb->mDataSpace = (char *)Mb + sizeof(lxMemeryBlock_t);
 
-    LOG_INFO_PRINT("[%p][%p]\n", Mb, Mb->mBlockTail);
+    LOG_ERROR_PRINT("[%p][%p]\n", Mb, Mb->mBlockTail);
     PMUTEX_UNLOCK(lxMCtx->mlock);
     return Mb->mDataSpace;
 }
@@ -231,7 +231,7 @@ static void lxfree(struct lx_memery_Obj * this, VOIDPTR basePtr)
             Mb->mBlockTail->tag = MEMERYBLOCK_STATUS_FREE;
             memset(Mb->mDataSpace, 0x00, Mb->mBlockHead.malloc_size);
             Mb->mBlockHead.malloc_size = 0;
-            LOG_INFO_PRINT("freeAddr:[%p], blockSize:[%d], [%p]\n", basePtr, Mb->mBlockHead.blockSize, Mb);
+            LOG_ERROR_PRINT("freeAddr:[%p], blockSize:[%d], [%p]\n", basePtr, Mb->mBlockHead.blockSize, Mb);
             if(lxMCtx->FreeSpace->mBlockHead.lxnode.Next == NULL && lxMCtx->FreeSpace->mBlockHead.lxnode.Prev == NULL)
             {
                 lxMCtx->FreeSpace = Mb;
@@ -256,7 +256,7 @@ static VOIDPTR lxrealloc(struct lx_memery_Obj * this, VOIDPTR basePtr, size_t si
     }
 
     lxMemeryBlock_t * Mb = (char *)basePtr - sizeof(lxMemeryBlock_t);
-    LOG_INFO_PRINT("blockSize:[%d], malloc_size:[%d]\n", Mb->mBlockHead.blockSize, Mb->mBlockHead.malloc_size);
+    LOG_ERROR_PRINT("blockSize:[%d], malloc_size:[%d]\n", Mb->mBlockHead.blockSize, Mb->mBlockHead.malloc_size);
 
     if(Mb->mBlockHead.blockSize >= size)
     {
@@ -347,18 +347,14 @@ u32int lxmemory_unit_test(void)
         return -1;
     }
 
-    int * data = MALLOC(this, 100);
-    int * data2 = MALLOC(this, 200);
-    int * data3 = MALLOC(this, 400);
-    FREE(this, data3);
-    FREE(this, data2);
-    int * data4 = MALLOC(this, 600);
-    strcpy(data4, "hello world ......................................................");
-    data4 = REALLOC(this, data4, 700);
-    strcpy(data4, "hello world ......................................................");
-    LOG_ERROR_PRINT("%s\n",data4);
+
+    void * data = MALLOC(this, 200);
+    void * data1 = MALLOC(this, 200);
+    void * data2 = MALLOC(this, 400);
     FREE(this, data);
-    FREE(this, data4);
+    FREE(this, data2);
+    FREE(this, data1);
+    void * data4 = MALLOC(this, 600);
     DELETE(lx_memery_Obj, this);
 }
 
