@@ -65,7 +65,7 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
     }
 
     size_t blockSize = 0;
-    lxMemeryBlock_t * Mb = NULL, *PrevMb = NULL, *NextMb = NULL;
+    lxMemeryBlock_t * Mb = NULL, *PrevMb = NULL, *NextMb = NULL, * breakValue = NULL;
     lxMemeryBlock_Head_t * lxMHead = NULL;
     lxMemeryBlock_Tail_t * lxMTail = NULL;
 
@@ -73,15 +73,16 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
 
     while(blockSize < size)
     {
+        PrevMb = NULL;
         lxMTail = NULL;
         if(Mb != basePtr)
         {
             lxMTail = (char *)Mb - sizeof(lxMemeryBlock_Tail_t);
-            LOG_ERROR_PRINT("lxMTail->tag [%d]\n", lxMTail->tag);
+            LOG_ERROR_PRINT("[%p]lxMTail->tag [%d]\n", lxMTail, lxMTail->tag);
         }
 
         lxMHead = (char *)Mb + sizeof(lxMemeryBlock_t) + Mb->mBlockHead.blockSize + sizeof(lxMemeryBlock_Tail_t);
-        LOG_ERROR_PRINT("lxMHead[%p][%p][%p]\n", ((char *)basePtr + MEMERY_POOL_SIZE), lxMHead, ((lxMemeryBlock_t *)lxMHead)->mBlockTail);
+        LOG_ERROR_PRINT("lxMHead[%p][%p]\n", ((char *)basePtr + MEMERY_POOL_SIZE), lxMHead);
         if((char *)lxMHead == ((char *)basePtr + MEMERY_POOL_SIZE))
         {
             lxMHead = NULL;
@@ -104,7 +105,7 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
             PrevMb->mBlockHead.blockSize = (char *)PrevMb->mBlockTail - (char *)PrevMb->mDataSpace;
             PrevMb->mBlockTail->tag = MEMERYBLOCK_STATUS_FREE;
             PrevMb->mBlockTail->uplink = PrevMb;
-            blockSize += PrevMb->mBlockHead.blockSize;
+            blockSize = PrevMb->mBlockHead.blockSize;
             LOG_ERROR_PRINT("Resource blockSize[%d]\n", PrevMb->mBlockHead.blockSize);
         }
         else if(lxMHead != NULL && lxMHead->tag == MEMERYBLOCK_STATUS_FREE)
@@ -117,9 +118,8 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
             PrevMb->mBlockTail->uplink = PrevMb;
             PrevMb->mBlockHead.tag = MEMERYBLOCK_STATUS_FREE;
             PrevMb->mBlockHead.blockSize = (char *)PrevMb->mBlockTail - (char *)PrevMb->mDataSpace;
-            blockSize += PrevMb->mBlockHead.blockSize;
-            LOG_ERROR_PRINT("Resource blockSize[%d]\n", blockSize);
-
+            blockSize = PrevMb->mBlockHead.blockSize;
+            LOG_ERROR_PRINT("Resource blockSize[%d][%d]\n", blockSize, PrevMb->mBlockHead.blockSize);
         }
         else if(lxMTail != NULL && lxMTail->tag == MEMERYBLOCK_STATUS_FREE)
         {
@@ -131,7 +131,7 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
 
             PrevMb->mBlockHead.blockSize = (char *)PrevMb->mBlockTail - (char *)PrevMb->mDataSpace;
 
-            blockSize += PrevMb->mBlockHead.blockSize;
+            blockSize = PrevMb->mBlockHead.blockSize;
             LOG_ERROR_PRINT("Resource blockSize[%d]\n", blockSize);
         }
         else
@@ -139,6 +139,16 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
             blockSize = 0;
         }
 
+        if(PrevMb == NULL)
+        {
+            LOG_ERROR_PRINT("PrevMb == NULL\n");
+            PrevMb = (lxMemeryBlock_t *)GET_STRUCT_HEAD_PTR(lxMemeryBlock_Head_t, Mb->mBlockHead.lxnode.Next, lxnode);
+            if(breakValue == PrevMb)
+            {
+                return NULL;
+            }
+            breakValue = PrevMb;
+        }
         Mb = PrevMb;
     }
 
@@ -150,6 +160,11 @@ static lxMemeryBlock_t * resources_recovery(const lxlist_Obj * mLXLOBJ, struct l
 
 static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
 {
+    if(!this || size <= 0)
+    {
+        return NULL;
+    }
+
     lxMemeryContext * lxMCtx = GET_STRUCT_HEAD_PTR(lxMemeryContext, this, mLXMOBJ);
     if(!lxMCtx)
     {
@@ -202,6 +217,12 @@ static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
         if(lxfirstnode == lxnode)
         {
             Mb = resources_recovery(lxMCtx->mLXLOBJ, lxnode, lxMCtx->basePtr, Mb, size);
+            if(Mb == NULL)
+            {
+                LOG_ERROR_PRINT("not find suitable memery block\n");
+                PMUTEX_UNLOCK(lxMCtx->mlock);
+                return NULL;
+            }
             lxnode = &Mb->mBlockHead.lxnode;
         }
     }
@@ -221,6 +242,10 @@ static VOIDPTR lxmalloc(struct lx_memery_Obj * this, size_t size)
 
 static void lxfree(struct lx_memery_Obj * this, VOIDPTR basePtr)
 {
+    if(!this || !basePtr)
+    {
+        return;
+    }
 
     lxMemeryContext * lxMCtx = GET_STRUCT_HEAD_PTR(lxMemeryContext, this, mLXMOBJ);
     if(lxMCtx)
@@ -353,9 +378,13 @@ u32int lxmemory_unit_test(void)
 
     void * data = MALLOC(this, 200);
     void * data1 = MALLOC(this, 200);
-    void * data2 = MALLOC(this, 400);
+    void * data2 = MALLOC(this, 500);
+
     FREE(this, data);
-    FREE(this, data2);
+    if(data2 != NULL)
+    {
+        FREE(this, data2);
+    }
     FREE(this, data1);
     void * data4 = MALLOC(this, 600);
     DELETE(lx_memery_Obj, this);

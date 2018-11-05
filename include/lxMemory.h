@@ -26,10 +26,13 @@ typedef struct lx_memery_Obj {
 
 #define FREE(THIS, PTR) do{ \
     assert(THIS != NULL); \
+    assert(PTR != NULL); \
     (THIS)->lxfree(THIS, PTR); \
 }while(0)
 
 #define REALLOC(THIS, PTR, SIZE) ( \
+    assert(THIS != NULL); \
+    assert(PTR != NULL); \
     THIS == NULL ? NULL : (THIS)->lxrealloc(THIS, PTR, SIZE) \
     )
 
