@@ -251,7 +251,6 @@ static void lxfree(struct lx_memery_Obj * this, VOIDPTR basePtr)
     if(lxMCtx)
     {
         lxMemeryBlock_t * Mb = (char *)basePtr - sizeof(lxMemeryBlock_t);
-
         if(Mb)
         {
             PMUTEX_LOCK(lxMCtx->mlock);
@@ -268,6 +267,7 @@ static void lxfree(struct lx_memery_Obj * this, VOIDPTR basePtr)
             else
             {
                 LXLIST_ADD_TAIL(lxMCtx->mLXLOBJ, &Mb->mBlockHead.lxnode, &lxMCtx->FreeSpace->mBlockHead.lxnode); //add to free list
+                lxMCtx->FreeSpace = Mb;
             }
             PMUTEX_UNLOCK(lxMCtx->mlock);
         }
@@ -383,7 +383,7 @@ u32int lxmemory_unit_test(void)
         return -1;
     }
 
-
+    #if 0
     void * data2 = MALLOC(this, 200);
 
     if(data2 != NULL)
@@ -394,6 +394,16 @@ u32int lxmemory_unit_test(void)
     data2 = REALLOC(this, data2, 500);
     LOG_DEBUG_PRINT("data2:%p, %s\n", data2, data2);
     FREE(this, data2);
+    #else
+    void * data1 = MALLOC(this, 200);
+    strcpy(data1, "hello world\n");
+    LOG_DEBUG_PRINT("data2:%p, %s\n", data1, data1);
+    FREE(this, data1);
+    void * data2 = MALLOC(this, 200);
+    strcpy(data2, "ssssss\n");
+    LOG_DEBUG_PRINT("data2:%p, %s\n", data2, data2);
+    FREE(this, data2);
+    #endif
     DELETE(lx_memery_Obj, this);
 }
 
