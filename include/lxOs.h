@@ -57,6 +57,7 @@ typedef struct timer_obj {
     BOOLTYPE (*start_timer)(struct timer_obj *pThis, unsigned int timerus, timer_notify_p notify, void * param);
     BOOLTYPE (*pause_timer)(struct timer_obj *pThis);
     BOOLTYPE (*release_timer)(struct timer_obj *pThis);
+    BOOLTYPE (*restart_timer)(struct timer_obj *pThis);
 }timer_obj;
 
 extern timer_obj * timer_obj_new(void);

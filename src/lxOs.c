@@ -183,6 +183,7 @@ typedef enum timer_status_e {
     TIEMR_PAUSE,
     TIEMR_STOP,
     TIEMR_RELEASE,
+    TIMER_RESTART,
     TIEMR_IDEL
 }timer_status_e;
 
@@ -202,7 +203,7 @@ static void * timer_proc(void * param)
 
     while(1) {
         timerStatus = timerManagerObj->timer_status;
-        if(timerStatus == TIMER_START) {
+        if(timerStatus == TIMER_START || timerStatus == TIMER_RESTART) {
             timerManagerObj->pNotify(timerManagerObj->param);
         } else if(timerStatus == TIEMR_RELEASE) {
             break;
@@ -262,6 +263,17 @@ static BOOLTYPE release_timer(struct timer_obj *pThis)
     return BOOL_TRUE;
 }
 
+static BOOLTYPE restart_timer(struct timer_obj *pThis) {
+    timer_manager_obj * timerManagerObj = GET_STRUCT_HEAD_PTR(timer_manager_obj, pThis, m_obj);
+    if(timerManagerObj == NULL) {
+        return BOOL_FALSE;
+    }
+
+    timerManagerObj->timer_status = TIMER_RESTART;
+
+    return BOOL_TRUE;
+}
+
 timer_obj * timer_obj_new(void)
 {
     timer_manager_obj * timerManagerObj = (timer_manager_obj *)lxOSMalloc(sizeof(timer_manager_obj));
@@ -275,6 +287,7 @@ timer_obj * timer_obj_new(void)
     timerManagerObj->m_obj.pause_timer = pause_timer;
     timerManagerObj->m_obj.release_timer = release_timer;
     timerManagerObj->m_obj.start_timer = start_timer;
+    timerManagerObj->m_obj.restart_timer = restart_timer;
 
     return &timerManagerObj->m_obj;
 }
