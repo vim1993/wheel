@@ -51,10 +51,10 @@ typedef struct semaphore_t {
 extern void semaphore_t_delete(semaphore_t * _mutex);
 extern semaphore_t * semaphore_t_new(void);
 
-typedef void (*timer_notify_p)(void);
+typedef void (*timer_notify_p)(void * param);
 
 typedef struct timer_obj {
-    BOOLTYPE (*start_timer)(struct timer_obj *pThis, unsigned int timerus, timer_notify_p notify);
+    BOOLTYPE (*start_timer)(struct timer_obj *pThis, unsigned int timerus, timer_notify_p notify, void * param);
     BOOLTYPE (*pause_timer)(struct timer_obj *pThis);
     BOOLTYPE (*release_timer)(struct timer_obj *pThis);
 }timer_obj;

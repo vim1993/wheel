@@ -11,7 +11,7 @@
 #include "lxlog.h"
 #include "lxMemory.h"
 
-void timer_notify(void)
+void timer_notify(void * param)
 {
     LOG_ERROR_PRINT("timer event...\n");
 }
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    timer->start_timer(timer, 100, timer_notify);
+    timer->start_timer(timer, 100, timer_notify, NULL);
 
     while(1) {
         usleep(100 * 1000);

@@ -188,7 +188,7 @@ typedef enum timer_status_e {
 
 typedef struct timer_manager_obj {
     unsigned int timerus;
-
+    void * param;
     pthread_t m_pid;
     timer_status_e timer_status;
     timer_notify_p pNotify;
@@ -203,7 +203,7 @@ static void * timer_proc(void * param)
     while(1) {
         timerStatus = timerManagerObj->timer_status;
         if(timerStatus == TIMER_START) {
-            timerManagerObj->pNotify();
+            timerManagerObj->pNotify(timerManagerObj->param);
         } else if(timerStatus == TIEMR_RELEASE) {
             break;
         }
@@ -214,7 +214,7 @@ static void * timer_proc(void * param)
     return NULL;
 }
 
-static BOOLTYPE start_timer(struct timer_obj *pThis, unsigned int timerus, timer_notify_p notify)
+static BOOLTYPE start_timer(struct timer_obj *pThis, unsigned int timerus, timer_notify_p notify, void * param)
 {
     if(notify == NULL || timerus == 0) {
         return BOOL_FALSE;
@@ -228,6 +228,7 @@ static BOOLTYPE start_timer(struct timer_obj *pThis, unsigned int timerus, timer
     timerManagerObj->timer_status = TIMER_START;
     timerManagerObj->timerus = timerus;
     timerManagerObj->pNotify = notify;
+    timerManagerObj->param = param;
 
     if(pthread_create(&timerManagerObj->m_pid, NULL, timer_proc, (void *)timerManagerObj) != 0) {
         timerManagerObj->timer_status = TIEMR_RELEASE;
