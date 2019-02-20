@@ -1,6 +1,4 @@
-#ifdef UNIT_TEST
 #include <string.h>
-#endif
 
 #include "type.h"
 #include "lxOs.h"

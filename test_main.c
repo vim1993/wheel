@@ -11,6 +11,12 @@
 #include "lxlog.h"
 #include "lxMemory.h"
 
+void timer_notify(void)
+{
+    LOG_ERROR_PRINT("timer event...\n");
+}
+
+
 void init(LOG_LEVEL_E level)
 {
     Log_Set_PrintLevel(level);
@@ -18,25 +24,26 @@ void init(LOG_LEVEL_E level)
 
 int main(int argc, char *argv[])
 {
-    init(LOG_LEVEL_DEBUG);
+    unsigned int cnt = 0;
+    init(LOG_LEVEL_INFO);
 
-    lx_memery_Obj * this = NEW(lx_memery_Obj);
-    if(!this)
-    {
-        LOG_ERROR_PRINT("create lx_memery_Obj failed\n");
+    timer_obj * timer = NEW(timer_obj);
+    if(timer == NULL) {
         return -1;
     }
 
-    int * data = MALLOC(this, sizeof(int));
-    int * data2 = MALLOC(this, sizeof(int));
-    int * data3 = MALLOC(this, sizeof(int));
-    FREE(this, data);
-    int * data4 = MALLOC(this, sizeof(int));
+    timer->start_timer(timer, 100, timer_notify);
 
-    FREE(this, data2);
-    FREE(this, data3);
-    FREE(this, data4);
-    DELETE(lx_memery_Obj, this);
+    while(1) {
+        usleep(100 * 1000);
+        cnt++;
+        if(cnt == 10) {
+            timer->release_timer(timer);
+            break;
+        }
+    }
+
+    DELETE(timer_obj, timer);
 
     return 0;
 }

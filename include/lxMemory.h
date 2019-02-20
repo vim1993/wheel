@@ -21,17 +21,16 @@ typedef struct lx_memery_Obj {
 }lx_memery_Obj;
 
 #define MALLOC(THIS, SIZE) ( \
-    THIS == NULL ? NULL : (THIS)->lxmalloc(THIS, SIZE) \
+    THIS == NULL ? malloc(SIZE) : (THIS)->lxmalloc(THIS, SIZE) \
     )
 
 #define FREE(THIS, PTR) do{ \
-    assert(THIS != NULL); \
     assert(PTR != NULL); \
-    (THIS)->lxfree(THIS, PTR); \
+    THIS == NULL? free(PTR) : (THIS)->lxfree(THIS, PTR); \
 }while(0)
 
 #define REALLOC(THIS, PTR, SIZE) ( \
-    THIS == NULL ? NULL : (THIS)->lxrealloc(THIS, PTR, SIZE) \
+    THIS == NULL ? realloc(PTR, SIZE) : (THIS)->lxrealloc(THIS, PTR, SIZE) \
     )
 
 lx_memery_Obj * lx_memery_Obj_new();

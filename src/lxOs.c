@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <unistd.h>
 #include <semaphore.h>
 
 #include "type.h"
@@ -177,3 +178,117 @@ void semaphore_t_delete(semaphore_t * _mutex)
     return;
 }
 
+typedef enum timer_status_e {
+    TIMER_START,
+    TIEMR_PAUSE,
+    TIEMR_STOP,
+    TIEMR_RELEASE,
+    TIEMR_IDEL
+}timer_status_e;
+
+typedef struct timer_manager_obj {
+    unsigned int timerus;
+
+    pthread_t m_pid;
+    timer_status_e timer_status;
+    timer_notify_p pNotify;
+    timer_obj m_obj;
+}timer_manager_obj;
+
+static void * timer_proc(void * param)
+{
+    timer_status_e timerStatus = TIEMR_IDEL;
+    timer_manager_obj * timerManagerObj = (timer_manager_obj *)param;
+
+    while(1) {
+        timerStatus = timerManagerObj->timer_status;
+        if(timerStatus == TIMER_START) {
+            timerManagerObj->pNotify();
+        } else if(timerStatus == TIEMR_RELEASE) {
+            break;
+        }
+
+        usleep(timerManagerObj->timerus * 1000);
+    }
+
+    return NULL;
+}
+
+static BOOLTYPE start_timer(struct timer_obj *pThis, unsigned int timerus, timer_notify_p notify)
+{
+    if(notify == NULL || timerus == 0) {
+        return BOOL_FALSE;
+    }
+
+    timer_manager_obj * timerManagerObj = GET_STRUCT_HEAD_PTR(timer_manager_obj, pThis, m_obj);
+    if(timerManagerObj == NULL) {
+        return BOOL_FALSE;
+    }
+
+    timerManagerObj->timer_status = TIMER_START;
+    timerManagerObj->timerus = timerus;
+    timerManagerObj->pNotify = notify;
+
+    if(pthread_create(&timerManagerObj->m_pid, NULL, timer_proc, (void *)timerManagerObj) != 0) {
+        timerManagerObj->timer_status = TIEMR_RELEASE;
+        return BOOL_FALSE;
+    }
+
+    return BOOL_TRUE;
+}
+
+static BOOLTYPE pause_timer(struct timer_obj *pThis)
+{
+    timer_manager_obj * timerManagerObj = GET_STRUCT_HEAD_PTR(timer_manager_obj, pThis, m_obj);
+    if(timerManagerObj == NULL) {
+        return BOOL_FALSE;
+    }
+
+    timerManagerObj->timer_status = TIEMR_PAUSE;
+
+    return BOOL_TRUE;
+}
+
+static BOOLTYPE release_timer(struct timer_obj *pThis)
+{
+    timer_manager_obj * timerManagerObj = GET_STRUCT_HEAD_PTR(timer_manager_obj, pThis, m_obj);
+    if(timerManagerObj == NULL) {
+        return BOOL_FALSE;
+    }
+
+    timerManagerObj->timer_status = TIEMR_RELEASE;
+
+    return BOOL_TRUE;
+}
+
+timer_obj * timer_obj_new(void)
+{
+    timer_manager_obj * timerManagerObj = (timer_manager_obj *)lxOSMalloc(sizeof(timer_manager_obj));
+    if(timerManagerObj == NULL) {
+        return NULL;
+    }
+
+    timerManagerObj->timerus = 0;
+    timerManagerObj->timer_status = TIEMR_IDEL;
+
+    timerManagerObj->m_obj.pause_timer = pause_timer;
+    timerManagerObj->m_obj.release_timer = release_timer;
+    timerManagerObj->m_obj.start_timer = start_timer;
+
+    return &timerManagerObj->m_obj;
+}
+
+void timer_obj_delete(struct timer_obj *pThis)
+{
+    timer_manager_obj * timerManagerObj = GET_STRUCT_HEAD_PTR(timer_manager_obj, pThis, m_obj);
+    if(timerManagerObj == NULL) {
+        return;
+    }
+
+    timerManagerObj->timer_status = TIEMR_RELEASE;
+    pthread_join(timerManagerObj->m_pid, NULL);
+
+    lxOSFree(timerManagerObj);
+
+    return;
+}

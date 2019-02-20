@@ -383,7 +383,7 @@ u32int lxmemory_unit_test(void)
         return -1;
     }
 
-    #if 0
+    #if 1
     void * data2 = MALLOC(this, 200);
 
     if(data2 != NULL)

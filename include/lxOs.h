@@ -1,6 +1,7 @@
 #ifndef __LX_OS_H__
 #define __LX_OS_H__
 
+#include "type.h"
 #include <pthread.h>
 #include <assert.h>
 
@@ -49,6 +50,17 @@ typedef struct semaphore_t {
 
 extern void semaphore_t_delete(semaphore_t * _mutex);
 extern semaphore_t * semaphore_t_new(void);
+
+typedef void (*timer_notify_p)(void);
+
+typedef struct timer_obj {
+    BOOLTYPE (*start_timer)(struct timer_obj *pThis, unsigned int timerus, timer_notify_p notify);
+    BOOLTYPE (*pause_timer)(struct timer_obj *pThis);
+    BOOLTYPE (*release_timer)(struct timer_obj *pThis);
+}timer_obj;
+
+extern timer_obj * timer_obj_new(void);
+extern void timer_obj_delete(struct timer_obj *pThis);
 
 void * lxOSMalloc(size_t st);
 void lxOSFree(void * pFree);

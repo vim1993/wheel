@@ -4,11 +4,6 @@
 #include <assert.h>
 #include "type.h"
 
-typedef enum ADD_TYPE_E {
-    NEXT_ADD_E,
-    PREV_ADD_E
-}ADD_TYPE_E;
-
 //通用双向链表, 屏蔽数据域
 typedef struct lxlist_node {
     struct lxlist_node * Next;
@@ -61,11 +56,8 @@ typedef struct lxlist_Obj {
         (THIS)->lxlist_rm(DELNODE, (DELNODE)->Prev, (DELNODE)->Next); \
     }while(0)
 
+
 lxlist_Obj * lxlist_Obj_new(void);
 void lxlist_Obj_delete(lxlist_Obj * this);
-
-#ifdef UNIT_TEST
-BOOLTYPE lxlist_unit_test_main(int argc, char *argv[]);
-#endif
 
 #endif

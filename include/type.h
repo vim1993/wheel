@@ -4,6 +4,12 @@
 #define RET_FAILED (-1)
 #define RET_OK     (0)
 
+#ifdef _MSC_VER
+#define COMPILER_IS_VC
+#else
+#define COMPILER_IS_GCC
+#endif
+
 typedef enum status_e {
     STATUS_E_FALSE,
     STATUS_E_TRUE,
@@ -28,10 +34,14 @@ typedef void * VOIDPTR;
 
 #define CAL_STRUCT_OFFSET(type, member) ( (size_t)&(((type *)0)->member) )
 
+#ifdef COMPILER_IS_GCC
 #define CAL_STRUCT_HEAD_PTR(type, ptr, member) ({ \
     const typeof(((type *)0)->member) * _ptr = ptr; \
     (type *)((char *)_ptr - CAL_STRUCT_OFFSET(type, member)); \
 })
+#else
+#define CAL_STRUCT_HEAD_PTR(type, ptr, member) (type *)((char *)_ptr - CAL_STRUCT_OFFSET(type, member))
+#endif
 
 #define GET_STRUCT_HEAD_PTR(type, ptr, member) (ptr == NULL ? NULL : CAL_STRUCT_HEAD_PTR(type, ptr, member))
 
