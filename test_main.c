@@ -27,6 +27,22 @@ int main(int argc, char *argv[])
     unsigned int cnt = 0;
     init(LOG_LEVEL_INFO);
 
+    utils_ecb_unit_test(argc, argv);
+    lxmemory_unit_test();
+    lxlist_unit_test_main();
+    lx_sequence_stack_unit_test();
+    //lxstack_unit_test();
+
+    lxque_obj * que = NEW(lxque_obj);
+    que->push_back(que, "hello world", 11);
+    DELETE(lxque_obj, que);
+
+    msgque_obj * msgque = NEW(msgque_obj);
+    msgque->push_back(msgque, "hello world", 11);
+    DELETE(msgque_obj, msgque);
+
+    lxlist_unit_test_main(argc, argv);
+
     timer_obj * timer = NEW(timer_obj);
     if(timer == NULL) {
         return -1;

@@ -367,6 +367,7 @@ void lx_memery_Obj_delete(lx_memery_Obj * this)
     {
         lxOSFree(lxMCtx->basePtr);
         lxlist_Obj_delete(lxMCtx->mLXLOBJ);
+        pthread_resource_lock_delete(lxMCtx->mlock);
         lxOSFree(lxMCtx);
     }
 

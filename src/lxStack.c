@@ -165,6 +165,7 @@ void lxstack_obj_delete(lxstack_obj * this)
 {
     lxStackNode * plxStackNode = NULL;
     lxStackContext * plxStackCtx = GET_STRUCT_HEAD_PTR(lxStackContext, this, mSatckObj);
+
     if(plxStackCtx)
     {
         while(plxStackCtx->Head)
@@ -191,7 +192,7 @@ int lxstack_unit_test_proc(void * param)
     char outbuff[3][16] = {0};
 
     lxstack_obj * lxStackOBJ = (lxstack_obj *)param;
-    if(!lxStackOBJ)
+    if(!lxStackOBJ || lxStackOBJ->pop_stack == NULL)
     {
         LOG_ERROR_PRINT("new lxStackOBJ failed\n");
         return -1;
