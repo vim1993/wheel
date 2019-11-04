@@ -51,7 +51,7 @@ static lxStackNode * lxstack_node_init(const void * data, size_t len)
     return node;
 }
 
-static BOOLTYPE push_stack(struct lxstack_obj * this, const void * data, size_t len)
+static BOOLTYPE push_stack(struct lxstack_obj * pthis, const void * data, size_t len)
 {
     if(!data || len <= 0)
     {
@@ -60,7 +60,7 @@ static BOOLTYPE push_stack(struct lxstack_obj * this, const void * data, size_t 
     }
 
     lxStackNode * plxStackNode = NULL;
-    lxStackContext * plxStackCtx = GET_STRUCT_HEAD_PTR(lxStackContext, this, mSatckObj);
+    lxStackContext * plxStackCtx = GET_STRUCT_HEAD_PTR(lxStackContext, pthis, mSatckObj);
     if(plxStackCtx)
     {
         plxStackNode = lxstack_node_init(data, len);
@@ -79,7 +79,7 @@ static BOOLTYPE push_stack(struct lxstack_obj * this, const void * data, size_t 
     return BOOL_FALSE;
 }
 
-static size_t  pop_stack(struct lxstack_obj * this, void * outdata, size_t len)
+static size_t  pop_stack(struct lxstack_obj * pthis, void * outdata, size_t len)
 {
     if(!outdata || len <= 0)
     {
@@ -89,7 +89,7 @@ static size_t  pop_stack(struct lxstack_obj * this, void * outdata, size_t len)
 
     size_t datalen = 0;
     lxStackNode * plxStackNode = NULL;
-    lxStackContext * plxStackCtx = GET_STRUCT_HEAD_PTR(lxStackContext, this, mSatckObj);
+    lxStackContext * plxStackCtx = GET_STRUCT_HEAD_PTR(lxStackContext, pthis, mSatckObj);
     if(plxStackCtx)
     {
         if(plxStackCtx->Head == NULL)
@@ -111,10 +111,10 @@ static size_t  pop_stack(struct lxstack_obj * this, void * outdata, size_t len)
     return datalen;
 }
 
-static BOOLTYPE isEmpty(struct lxstack_obj * this)
+static BOOLTYPE isEmpty(struct lxstack_obj * pthis)
 {
     BOOLTYPE boolRet = BOOL_FALSE;
-    lxStackContext * plxStackCtx = GET_STRUCT_HEAD_PTR(lxStackContext, this, mSatckObj);
+    lxStackContext * plxStackCtx = GET_STRUCT_HEAD_PTR(lxStackContext, pthis, mSatckObj);
     if(plxStackCtx)
     {
         if(plxStackCtx->Head == NULL)
@@ -126,14 +126,14 @@ static BOOLTYPE isEmpty(struct lxstack_obj * this)
     return boolRet;
 }
 
-//this interfaces are for the sequential stack, and the chain stack returns false
-static BOOLTYPE isFull(struct lxstack_obj * this)
+//pthis interfaces are for the sequential stack, and the chain stack returns false
+static BOOLTYPE isFull(struct lxstack_obj * pthis)
 {
     return BOOL_FALSE;
 }
 
-//this interfaces are for the sequential stack, and the chain stack returns true
-static BOOLTYPE init(struct lxstack_obj * this, u32int ElmentNum)
+//pthis interfaces are for the sequential stack, and the chain stack returns true
+static BOOLTYPE init(struct lxstack_obj * pthis, u32int ElmentNum)
 {
     return BOOL_TRUE;
 }
@@ -161,10 +161,10 @@ lxstack_obj * lxstack_obj_new(void)
     return &plxStackCtx->mSatckObj;
 }
 
-void lxstack_obj_delete(lxstack_obj * this)
+void lxstack_obj_delete(lxstack_obj * pthis)
 {
     lxStackNode * plxStackNode = NULL;
-    lxStackContext * plxStackCtx = GET_STRUCT_HEAD_PTR(lxStackContext, this, mSatckObj);
+    lxStackContext * plxStackCtx = GET_STRUCT_HEAD_PTR(lxStackContext, pthis, mSatckObj);
 
     if(plxStackCtx)
     {
@@ -185,7 +185,7 @@ void lxstack_obj_delete(lxstack_obj * this)
 }
 
 #ifdef UNIT_TEST
-int lxstack_unit_test_proc(void * param)
+void * lxstack_unit_test_proc(void * param)
 {
     int index = 0;
 
@@ -195,7 +195,7 @@ int lxstack_unit_test_proc(void * param)
     if(!lxStackOBJ || lxStackOBJ->pop_stack == NULL)
     {
         LOG_ERROR_PRINT("new lxStackOBJ failed\n");
-        return -1;
+        return NULL;
     }
     //LOG_DEBUG_PRINT("is empty:%d\n", lxStackOBJ->isEmpty(lxStackOBJ));
 
@@ -205,7 +205,7 @@ int lxstack_unit_test_proc(void * param)
         LOG_DEBUG_PRINT("pop [%d][%s]\n", index, outbuff[index]);
     }
 
-    return 0;
+    return NULL;
 }
 
 

@@ -14,9 +14,9 @@
 
 typedef struct lx_memery_Obj {
 
-    VOIDPTR (*lxmalloc)(struct lx_memery_Obj * this, size_t size);
-    VOIDPTR (*lxrealloc)(struct lx_memery_Obj * this, VOIDPTR basePtr, size_t size);
-    void (*lxfree)(struct lx_memery_Obj * this, VOIDPTR basePtr);
+    VOIDPTR (*lxmalloc)(struct lx_memery_Obj * pthis, size_t size);
+    VOIDPTR (*lxrealloc)(struct lx_memery_Obj * pthis, VOIDPTR basePtr, size_t size);
+    void (*lxfree)(struct lx_memery_Obj * pthis, VOIDPTR basePtr);
 
 }lx_memery_Obj;
 
@@ -34,7 +34,7 @@ typedef struct lx_memery_Obj {
     )
 
 lx_memery_Obj * lx_memery_Obj_new();
-void lx_memery_Obj_delete(lx_memery_Obj * this);
+void lx_memery_Obj_delete(lx_memery_Obj * pthis);
 
 #ifdef UNIT_TEST
 u32int lxmemory_unit_test(void);

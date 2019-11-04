@@ -30,14 +30,14 @@ static MsgQueNode_s * msgque_node_create(void)
     return node;
 }
 
-static void release_buffer(struct msgque_obj *this, const void * data)
+static void release_buffer(struct msgque_obj *pthis, void * data)
 {
     lxOSFree(data);
 
     return;
 }
 
-static status_e push_back(struct msgque_obj *this, const void * data, size_t datalen)
+static status_e push_back(struct msgque_obj *pthis, const void * data, size_t datalen)
 {
     if(!data || datalen <= 0)
     {
@@ -45,7 +45,7 @@ static status_e push_back(struct msgque_obj *this, const void * data, size_t dat
     }
 
     MsgQueNode_s * pDataNode = NULL;
-    MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, this, msgObj);
+    MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, pthis, msgObj);
     if(!pQueCtx)
     {
         return STATUS_E_FALSE;
@@ -62,10 +62,10 @@ static status_e push_back(struct msgque_obj *this, const void * data, size_t dat
     return STATUS_E_TRUE;
 }
 
-static VOIDPTR pop_front(struct msgque_obj *this)
+static VOIDPTR pop_front(struct msgque_obj *pthis)
 {
     void * data = NULL;
-    MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, this, msgObj);
+    MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, pthis, msgObj);
     if(!pQueCtx)
     {
         return NULL;
@@ -79,10 +79,10 @@ static VOIDPTR pop_front(struct msgque_obj *this)
     return data;
 }
 
-static VOIDPTR pop_front_timeout(struct msgque_obj *this, unsigned char timeoutS)
+static VOIDPTR pop_front_timeout(struct msgque_obj *pthis, unsigned char timeoutS)
 {
     void * data = NULL;
-    MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, this, msgObj);
+    MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, pthis, msgObj);
     if(!pQueCtx)
     {
         return NULL;
@@ -133,10 +133,10 @@ msgque_obj * msgque_obj_new(void)
     return &pQueCtx->msgObj;
 }
 
-void msgque_obj_delete(msgque_obj * this)
+void msgque_obj_delete(msgque_obj * pthis)
 {
     MsgQueNode_s * pNode = NULL, *pTmpNode = NULL;
-    MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, this, msgObj);
+    MsgQue_Content_s * pQueCtx = GET_STRUCT_HEAD_PTR(MsgQue_Content_s, pthis, msgObj);
     if(pQueCtx)
     {
         pNode = pQueCtx->head;

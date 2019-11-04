@@ -12,7 +12,7 @@
 #define DES_KEY_BASE_LEN (8)
 
 struct des_manager {
-    long long m_r;
+    unsigned int m_r;
 
     long long m_t;
 
@@ -564,7 +564,7 @@ void utils_base64_unit_test(int argc, char * argv [ ])
     unsigned char out[1024] = {0};
     unsigned char outdec[1024] = {0};
 
-    int retlen = cal_char2Base64(value, 4, out, sizeof(out));
+    int retlen = cal_char2Base64((unsigned char *)value, 4, out, sizeof(out));
     LOG_INFO_PRINT("%d, enc:%s\n", retlen, out);
 
     retlen = cal_Base642Char(out, retlen, outdec);

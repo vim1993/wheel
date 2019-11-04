@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "type.h"
 #include "lxOs.h"
 #include "lxQue.h"
@@ -28,7 +32,7 @@ static lxQue_Node_s * lxque_node_init(void)
     return node;
 }
 
-static status_e push_back(struct msgque_obj *this, const void * data, size_t len)
+static status_e push_back(struct lxque_obj * pthis, const void * data, size_t len)
 {
     if(len <= 0 || !data)
     {
@@ -36,7 +40,7 @@ static status_e push_back(struct msgque_obj *this, const void * data, size_t len
         return STATUS_E_FALSE;
     }
 
-    lxQue_Content_s * lxQueCtx = GET_STRUCT_HEAD_PTR(lxQue_Content_s, this, mlxQueObj);
+    lxQue_Content_s * lxQueCtx = GET_STRUCT_HEAD_PTR(lxQue_Content_s, pthis, mlxQueObj);
     if(lxQueCtx)
     {
         lxQueCtx->Tail->data = lxOSMalloc(len);
@@ -55,7 +59,7 @@ static status_e push_back(struct msgque_obj *this, const void * data, size_t len
     return STATUS_E_TRUE;
 }
 
-static size_t pop_front(struct msgque_obj *this, void * outbuffer, size_t bufferlen)
+static size_t pop_front(struct lxque_obj *pthis, void * outbuffer, size_t bufferlen)
 {
     if(bufferlen <= 0 || !outbuffer)
     {
@@ -65,7 +69,7 @@ static size_t pop_front(struct msgque_obj *this, void * outbuffer, size_t buffer
 
     size_t len = 0;
     lxQue_Node_s * pNode = NULL;
-    lxQue_Content_s * lxQueCtx = GET_STRUCT_HEAD_PTR(lxQue_Content_s, this, mlxQueObj);
+    lxQue_Content_s * lxQueCtx = GET_STRUCT_HEAD_PTR(lxQue_Content_s, pthis, mlxQueObj);
     if(lxQueCtx)
     {
         if(lxQueCtx->Head == lxQueCtx->Tail)
@@ -85,10 +89,10 @@ static size_t pop_front(struct msgque_obj *this, void * outbuffer, size_t buffer
     return len;
 }
 
-static BOOLTYPE isEmpty(struct msgque_obj *this)
+static BOOLTYPE isEmpty(struct lxque_obj *pthis)
 {
     BOOLTYPE boolRet = BOOL_FALSE;
-    lxQue_Content_s * lxQueCtx = GET_STRUCT_HEAD_PTR(lxQue_Content_s, this, mlxQueObj);
+    lxQue_Content_s * lxQueCtx = GET_STRUCT_HEAD_PTR(lxQue_Content_s, pthis, mlxQueObj);
     if(lxQueCtx)
     {
         if(lxQueCtx->Head == lxQueCtx->Tail)
@@ -125,10 +129,10 @@ lxque_obj * lxque_obj_new(void)
     return &lxQueCtx->mlxQueObj;
 }
 
-void lxque_obj_delete(lxque_obj * this)
+void lxque_obj_delete(lxque_obj * pthis)
 {
     lxQue_Node_s * pNode = NULL;
-    lxQue_Content_s * lxQueCtx = GET_STRUCT_HEAD_PTR(lxQue_Content_s, this, mlxQueObj);
+    lxQue_Content_s * lxQueCtx = GET_STRUCT_HEAD_PTR(lxQue_Content_s, pthis, mlxQueObj);
     if(lxQueCtx)
     {
         while(lxQueCtx->Head)

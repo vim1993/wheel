@@ -58,6 +58,6 @@ typedef struct lxlist_Obj {
 
 
 lxlist_Obj * lxlist_Obj_new(void);
-void lxlist_Obj_delete(lxlist_Obj * this);
+void lxlist_Obj_delete(lxlist_Obj * pthis);
 
 #endif

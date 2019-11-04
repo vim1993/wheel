@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 
     utils_ecb_unit_test(argc, argv);
     lxmemory_unit_test();
-    lxlist_unit_test_main();
+    lxlist_unit_test_main(argc, argv);
     lx_sequence_stack_unit_test();
     //lxstack_unit_test();
 

@@ -67,12 +67,12 @@ lxlist_Obj * lxlist_Obj_new(void)
     return mLxlistOBJ;
 }
 
-void lxlist_Obj_delete(lxlist_Obj * this)
+void lxlist_Obj_delete(lxlist_Obj * pthis)
 {
-    this->lxlist_add = NULL;
-    this->lxlist_init = NULL;
-    this->lxlist_rm  = NULL;
-    lxOSFree(this);
+    pthis->lxlist_add = NULL;
+    pthis->lxlist_init = NULL;
+    pthis->lxlist_rm  = NULL;
+    lxOSFree(pthis);
 
     return;
 }

@@ -22,7 +22,7 @@ typedef struct sequence_stack_Context {
 }sequence_stack_Context;
 
 
-static BOOLTYPE push_stack(lxstack_sequence * this, const void * data, size_t len)
+static BOOLTYPE push_stack(lxstack_sequence * pthis, const void * data, size_t len)
 {
     if(!data || len <= 0)
     {
@@ -30,7 +30,7 @@ static BOOLTYPE push_stack(lxstack_sequence * this, const void * data, size_t le
     }
 
     i32int stackindex = -1;
-    sequence_stack_Context * seqStackCtx = GET_STRUCT_HEAD_PTR(sequence_stack_Context, this, lxSeqStackOBJ);
+    sequence_stack_Context * seqStackCtx = GET_STRUCT_HEAD_PTR(sequence_stack_Context, pthis, lxSeqStackOBJ);
     if(seqStackCtx)
     {
         if(seqStackCtx->node == NULL || seqStackCtx->ElmentPoint == (seqStackCtx->ElmentNum -1))
@@ -57,7 +57,7 @@ static BOOLTYPE push_stack(lxstack_sequence * this, const void * data, size_t le
     return BOOL_TRUE;
 }
 
-static size_t   pop_stack(lxstack_sequence * this, void * outdata, size_t len)
+static size_t   pop_stack(lxstack_sequence * pthis, void * outdata, size_t len)
 {
     if(!outdata || len <= 0)
     {
@@ -65,7 +65,7 @@ static size_t   pop_stack(lxstack_sequence * this, void * outdata, size_t len)
     }
 
     size_t datalen = 0;
-    sequence_stack_Context * seqStackCtx = GET_STRUCT_HEAD_PTR(sequence_stack_Context, this, lxSeqStackOBJ);
+    sequence_stack_Context * seqStackCtx = GET_STRUCT_HEAD_PTR(sequence_stack_Context, pthis, lxSeqStackOBJ);
     if(seqStackCtx)
     {
         if(seqStackCtx->node == NULL || seqStackCtx->ElmentPoint == -1)
@@ -87,10 +87,10 @@ static size_t   pop_stack(lxstack_sequence * this, void * outdata, size_t len)
     return datalen;
 }
 
-static BOOLTYPE isEmpty(lxstack_sequence * this)
+static BOOLTYPE isEmpty(lxstack_sequence * pthis)
 {
     BOOLTYPE BoolRet = BOOL_FALSE;
-    sequence_stack_Context * seqStackCtx = GET_STRUCT_HEAD_PTR(sequence_stack_Context, this, lxSeqStackOBJ);
+    sequence_stack_Context * seqStackCtx = GET_STRUCT_HEAD_PTR(sequence_stack_Context, pthis, lxSeqStackOBJ);
     if(seqStackCtx)
     {
         if(seqStackCtx->node != NULL && seqStackCtx->ElmentPoint == -1)
@@ -102,11 +102,11 @@ static BOOLTYPE isEmpty(lxstack_sequence * this)
     return BoolRet;
 }
 
-    //this interfaces are for the sequential stack, and the chain stack returns false
-static BOOLTYPE isFull(lxstack_sequence * this)
+    //pthis interfaces are for the sequential stack, and the chain stack returns false
+static BOOLTYPE isFull(lxstack_sequence * pthis)
 {
     BOOLTYPE BoolRet = BOOL_TRUE;
-    sequence_stack_Context * seqStackCtx = GET_STRUCT_HEAD_PTR(sequence_stack_Context, this, lxSeqStackOBJ);
+    sequence_stack_Context * seqStackCtx = GET_STRUCT_HEAD_PTR(sequence_stack_Context, pthis, lxSeqStackOBJ);
     if(seqStackCtx)
     {
         //LOG_DEBUG_PRINT("[%d][%d]!\n", seqStackCtx->ElmentPoint, seqStackCtx->ElmentNum);
@@ -119,11 +119,11 @@ static BOOLTYPE isFull(lxstack_sequence * this)
     return BoolRet;
 }
 
-    //this interfaces are for the sequential stack, and the chain stack returns true
-static BOOLTYPE init(lxstack_sequence * this, u32int ElmentNum)
+    //pthis interfaces are for the sequential stack, and the chain stack returns true
+static BOOLTYPE init(lxstack_sequence * pthis, u32int ElmentNum)
 {
     BOOLTYPE BoolRet = BOOL_FALSE;
-    sequence_stack_Context * seqStackCtx = GET_STRUCT_HEAD_PTR(sequence_stack_Context, this, lxSeqStackOBJ);
+    sequence_stack_Context * seqStackCtx = GET_STRUCT_HEAD_PTR(sequence_stack_Context, pthis, lxSeqStackOBJ);
     if(seqStackCtx)
     {
         seqStackCtx->ElmentNum = ElmentNum;
@@ -167,9 +167,9 @@ lxstack_sequence * lxstack_sequence_new(void)
     return &seqStackCtx->lxSeqStackOBJ;
 }
 
-void lxstack_sequence_delete(lxstack_sequence * this)
+void lxstack_sequence_delete(lxstack_sequence * pthis)
 {
-    sequence_stack_Context * seqStackCtx = GET_STRUCT_HEAD_PTR(sequence_stack_Context, this, lxSeqStackOBJ);
+    sequence_stack_Context * seqStackCtx = GET_STRUCT_HEAD_PTR(sequence_stack_Context, pthis, lxSeqStackOBJ);
     if(seqStackCtx)
     {
         seqStackCtx->lock->pthread_resource_lock(seqStackCtx->lock);
