@@ -377,7 +377,7 @@ void lx_memery_Obj_delete(lx_memery_Obj * this)
 #ifdef UNIT_TEST
 u32int lxmemory_unit_test(void)
 {
-    lx_memery_Obj * this = NEW(lx_memery_Obj);
+    lx_memery_Obj * this = New(lx_memery_Obj);
     if(!this)
     {
         LOG_ERROR_PRINT("create lx_memery_Obj failed\n");

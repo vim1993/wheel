@@ -37,7 +37,7 @@ typedef void * VOIDPTR;
 #ifdef COMPILER_IS_GCC
 #define CAL_STRUCT_HEAD_PTR(type, ptr, member) ({ \
     const typeof(((type *)0)->member) * _ptr = ptr; \
-    (type *)((char *)_ptr - CAL_STRUCT_OFFSET(type, member)); \
+    (type *)((const char *)_ptr - CAL_STRUCT_OFFSET(type, member)); \
 })
 #else
 #define CAL_STRUCT_HEAD_PTR(type, ptr, member) (type *)((char *)_ptr - CAL_STRUCT_OFFSET(type, member))
@@ -46,6 +46,7 @@ typedef void * VOIDPTR;
 #define GET_STRUCT_HEAD_PTR(type, ptr, member) (ptr == NULL ? NULL : CAL_STRUCT_HEAD_PTR(type, ptr, member))
 
 #define NEW(TYPE)  (TYPE##_new())
+#define New(type, ...) (type##_new(__VA_ARGS__))
 #define DELETE(TYPE, PTR) TYPE##_delete(PTR)
 
 #endif

@@ -33,17 +33,17 @@ int main(int argc, char *argv[])
     lx_sequence_stack_unit_test();
     //lxstack_unit_test();
 
-    lxque_obj * que = NEW(lxque_obj);
+    lxque_obj * que = New(lxque_obj);
     que->push_back(que, "hello world", 11);
     DELETE(lxque_obj, que);
 
-    msgque_obj * msgque = NEW(msgque_obj);
+    msgque_obj * msgque = New(msgque_obj);
     msgque->push_back(msgque, "hello world", 11);
     DELETE(msgque_obj, msgque);
 
     lxlist_unit_test_main(argc, argv);
 
-    timer_obj * timer = NEW(timer_obj);
+    timer_obj * timer = New(timer_obj);
     if(timer == NULL) {
         return -1;
     }
